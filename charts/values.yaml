@@ -1,0 +1,17 @@
+deployment:
+  replicas: 1
+  sample:
+    image:
+      repository: ap6112560/sample
+      tag: latest
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+kubernetesClusterDomain: cluster.local
+service:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  type: LoadBalancer

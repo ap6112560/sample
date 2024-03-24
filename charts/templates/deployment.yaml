@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "charts.fullname" . }}-deployment
+  labels:
+    app: sample
+  {{- include "charts.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: sample
+    {{- include "charts.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: sample
+      {{- include "charts.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.deployment.sample.image.repository }}:{{ .Values.deployment.sample.image.tag
+          | default .Chart.AppVersion }}
+        name: sample
+        ports:
+        - containerPort: 8080
+        resources: {{- toYaml .Values.deployment.sample.resources | nindent 10 }}
