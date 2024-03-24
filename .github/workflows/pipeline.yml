@@ -80,3 +80,7 @@ jobs:
         uses: Azure/k8s-deploy@v4
         with:
           manifests: ${{ steps.bake.outputs.manifestsBundle }}
+          images: |
+            ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.PROJECT_NAME }}:${{ github.sha }}
+          imagepullsecrets: |
+            my-secret
