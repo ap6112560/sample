@@ -2,8 +2,8 @@ deployment:
   replicas: 1
   sample:
     image:
-      repository: ap6112560/sample
-      tag: latest
+      repository: ap6112560.azurecr.io/sample
+      tag: f5ca26f5026e851a0c25052aea4e5e10a87edeef
     resources:
       requests:
         cpu: 100m

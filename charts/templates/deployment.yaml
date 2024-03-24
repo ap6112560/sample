@@ -27,3 +27,5 @@ spec:
         ports:
         - containerPort: 8080
         resources: {{- toYaml .Values.deployment.sample.resources | nindent 10 }}
+      imagePullSecrets:
+        - name: my-secret
