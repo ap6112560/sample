@@ -6,7 +6,7 @@ env:
   RESOURCE_GROUP: practice          # set this to the resource group containing your AKS cluster
   CLUSTER_NAME: k8s              # set this to the name of your AKS cluster
   # If you bake using helm:
-  CHART_PATH: charts/Chart.yaml                   # set this to the path to your helm file
+  CHART_PATH: charts                # set this to the path to your helm file
   REGISTRY_ID: ap6112560
 
 jobs:
@@ -45,24 +45,29 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build image on ACR
-        uses: azure/CLI@61bb69d64d613b52663984bf12d6bac8fd7b3cc8
+      - name: 'Docker Login'
+        uses: azure/docker-login@v1
         with:
-          azcliversion: 2.30.0
-          inlineScript: |
-            az configure --defaults acr=${{ env.REGISTRY_ID }}
-            az acr build --registry ${{ env.REGISTRY_ID }} --image ${{ env.PROJECT_NAME }}:${{ github.sha }} .
+          login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}
+          username: ${{ env.REGISTRY_ID }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build the image and push it to ACR
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.PROJECT_NAME }}:${{ github.sha }}
+          file: Dockerfile
 
       - name: Gets K8s context
-        uses: azure/aks-set-context@94ccc775c1997a3fcfbfbce3c459fec87e0ab188
+        uses: azure/aks-set-context@v3
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
           resource-group: ${{ env.RESOURCE_GROUP }}
           cluster-name: ${{ env.CLUSTER_NAME }}
         id: login
 
       - name: Configure deployment
-        uses: azure/k8s-bake@61041e8c2f75c1f01186c8f05fb8b24e1fc507d8
+        uses: azure/k8s-bake@v3
         with:
           renderEngine: 'helm'
           helmChart: ${{ env.CHART_PATH }}
@@ -72,7 +77,7 @@ jobs:
         id: bake
 
       - name: Deploys application
-        uses: Azure/k8s-deploy@dd4bbd13a5abd2fc9ca8bdcb8aee152bb718fa78
+        uses: Azure/k8s-deploy@v4
         with:
           manifests: ${{ steps.bake.outputs.manifestsBundle }}
           images: |
